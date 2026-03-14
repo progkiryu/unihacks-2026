@@ -74,6 +74,7 @@ function App() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhotoURL(null);
     const file = e.target.files?.[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
@@ -84,6 +85,7 @@ function App() {
       setSelected('photo-library');
       setPhotoURL(imageUrl);
 
+      // sends photo
       await sendPhotoFile(formData);
     }
   };
@@ -149,7 +151,7 @@ function App() {
           )
         }
 
-        { selected !== null && <hr className="w-full" /> }
+        { selected !== null && <hr className="w-full text-white" /> }
 
         <div className="w-full flex items-center justify-center gap-5">
           <button title="Take a photo"

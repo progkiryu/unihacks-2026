@@ -22,6 +22,7 @@ export async function fetchHello(): Promise<string> {
     }
 }
 
+// api call for sending photo to flask
 export async function sendPhotoFile(formData: FormData): Promise<void> {
     try {
         const response = await fetch(`${DBLink}/photo`, {

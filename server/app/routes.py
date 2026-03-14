@@ -1,12 +1,20 @@
 from flask import Blueprint, request, jsonify
+from werkzeug.utils import secure_filename
 from .services import say_hello
 import os
 
 api = Blueprint("api", __name__)
 
-UPLOAD_FOLDER = "uploads"
+# Put uploaded images in a known folder under the server root.
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "upload")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+MODEL_PATH = os.path.join(BASE_DIR, "model", "stroke_model_final.h5")
+
+# Cache the loaded model so we don't reload on every request.
+_model = None
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -18,7 +26,25 @@ def hello():
 
 @api.route("/photo", methods=["POST"])
 def photo():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part in request"}), 400
+
     file = request.files["file"]
-    
-    message = "received"
-    return {"message": message}
+    if not file or file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({"error": "File type not allowed"}), 400
+
+    filename = secure_filename(file.filename)
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(save_path)
+
+    if os.path.exists(save_path):
+        os.remove(save_path)
+
+    return jsonify({
+        "message": "file uploaded",
+        "filename": filename,
+        "path": save_path
+    })
