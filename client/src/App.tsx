@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import LinkedCameraIcon from '@mui/icons-material/LinkedCamera';
-import WebcamCapture from './WebcamCapture';
+import WebcamCapture from './components/WebcamCapture';
+import { fetchHello, sendPhotoFile } from './api/flask';
 
 const STROKE_FACTS = [
   { icon: "🧑‍⚕️", text: "Sudden numbness or weakness in the face, arm, or leg, especially on one side of the body." },
@@ -72,13 +73,18 @@ function App() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log(file);
       const imageUrl = URL.createObjectURL(file);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      
       setSelected('photo-library');
       setPhotoURL(imageUrl);
+
+      await sendPhotoFile(formData);
     }
   };
 
@@ -91,6 +97,10 @@ function App() {
     setSelected(null);
     setPhotoURL(null);
   }
+
+  useEffect(() => {
+    console.log(fetchHello());
+  }, []);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-start gap-10 px-5
