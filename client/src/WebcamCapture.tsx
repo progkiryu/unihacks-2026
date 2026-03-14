@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from "react";
 export default function WebcamCapture() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
   const [photo, setPhoto] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number>(5);
 
   useEffect(() => {
     const startWebcam = async () => {
@@ -13,16 +15,26 @@ export default function WebcamCapture() {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-
-        const interval = setInterval(capturePhoto, 5000);
-
-        return () => clearInterval(interval);
       } catch (error) {
         console.error(error);
       }
     };
 
     startWebcam();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === 1) {
+          capturePhoto();
+          return 5; // reset countdown
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const capturePhoto = () => {
@@ -37,17 +49,27 @@ export default function WebcamCapture() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL("image/png");
-    console.log(dataUrl);
     setPhoto(dataUrl);
   };
 
   return (
-    <div>
-      <video
-        ref={videoRef}
-        autoPlay
-        style={{ width: 320, height: 240 }}
-      />
+    <div className="flex items-center justify-center gap-5">
+      
+      {/* Video container */}
+      <div className="relative w-[320px] h-[240px] border-black rounded-sm border-2 overflow-hidden">
+        
+        <video
+          ref={videoRef}
+          autoPlay
+          className="w-full h-full object-cover"
+        />
+
+        {/* Countdown overlay */}
+        <div className="absolute inset-0 flex items-center justify-center text-white text-6xl font-bold bg-black/20">
+          {countdown}
+        </div>
+
+      </div>
 
       <canvas
         ref={canvasRef}
@@ -56,19 +78,15 @@ export default function WebcamCapture() {
         style={{ display: "none" }}
       />
 
-      {photo && (
-        <img
-          src={photo}
-          alt="Latest photo"
-          style={{
-            display: "block",
-            marginTop: 10,
-            width: 320,
-            height: 240,
-            border: "1px solid #ccc"
-          }}
-        />
-      )}
+      <div className="w-[320px] h-[240px] overflow-hidden border-black rounded-sm bg-black border-2">
+        {photo && (
+          <img
+            className="w-full h-full object-cover"
+            src={photo}
+            alt="Latest photo"
+          />
+        )}
+      </div>
     </div>
   );
 }
