@@ -11,6 +11,7 @@ exports.scanController = async (req, res, next) => {
     const base64 = extractBase64(image);   // strips "data:image/jpeg;base64," prefix
     const mimeType = extractMimeType(image); // extracts "image/jpeg" etc.
 
+    // base64: input string
     const result = await analyzeImage(base64, mimeType);
 
     return res.status(200).json({
